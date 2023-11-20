@@ -77,4 +77,108 @@ Pada langkah ini kita akan membuat Collection pada MongoDB Atlas dan melakukan s
 
 Sampai pada tahap ini, kita sudah berhasil untuk memasukkan data yang dimiliki ke dalam Atlas yah.
 
+### Step 0b - Membuat Konfigurasi Driver MongoDB
+
+Pada langkah ini kita akan membuat konfigurasi awal untuk menggunakan driver mongodb agar dapat terkoneksi dengan Atlas via package `mongodb`.
+
+Adapun langkah-langkahnya adalah sebagai berikut:
+
+1. Membuka [halaman utama Atlas](https://cloud.mongodb.com/)
+1. Menekan tombol `Connect` kemudian memilih `Drivers`
+1. Pada langkah `3. Add your connection string into your application code`, akan diberikan sebuah string yang diawali dengan `mongo+srv`, tekan tombol copy
+1. Kembali pada halaman project pada VSCode, membuat sebuah file baru dengan nama `.env` pada root folder
+1. Membuat sebuah key baru dengan nama `MONGODB_CONNECTION_STRING="<isikan_dengan_string_yang_dicopy_tadi>"` (**perhatikan bahwa ada double quote pada string tersebut**)
+1. Membuat sebuah key baru dengan nama `MONGODB_DB_NAME=pengembangan`
+1. Menginstall package `mongodb` dengan perintah `npm install mongodb`
+1. Menginstall package `bcrypt` dengan perintah `npm install bcryptjs`
+1. Menginstall type definition `bcrypt` dengan perintah `npm install -D @types/bcryptjs`
+1. Membuat folder baru pada `src` dengan nama `db` (`/src/db`)
+1. Membuat folder baru pada `src/db` dengan nama `config` dan `models` (`/src/db/config` dan `/src/db/models`)
+1. Membuat file baru dengan nama `index.ts` pada folder `config` (`src/config/index.ts`) dan menuliskan kode sebagai berikut:
+
+   ```ts
+   import { MongoClient } from "mongodb";
+
+   const connectionString = process.env.MONGODB_CONNECTION_STRING;
+
+   // Memastikan bahwa connectionString sudah ada value-nya
+   if (!connectionString) {
+     throw new Error("MONGODB_CONNECTION_STRING is not defined");
+   }
+
+   // Tipe data dari client adalah MongoClient
+   let client: MongoClient;
+
+   // Fungsi ini akan mengembalikan client yang sudah terkoneksi dengan MongoDB
+   // Hanya boleh ada 1 instance client (Singleton)
+   export const getMongoClientInstance = async () => {
+     if (!client) {
+       client = await MongoClient.connect(connectionString);
+       await client.connect();
+     }
+
+     return client;
+   };
+   ```
+
+1. Membuat sebuah file baru dengan nama `user.ts` pada folder `models` (`src/models/user.ts`) dan menuliskan kode sebagai berikut:
+
+   ```ts
+   import { Db, ObjectId } from "mongodb";
+   import { getMongoClientInstance } from "../config";
+   import { hashText } from "../utils/hash";
+
+   // Mendefinisikan type dari UserModel
+   type UserModel = {
+     _id: ObjectId;
+     username: string;
+     email: string;
+     password: string;
+     // Perhatikan di sini menggunakan ? (optional)
+     // Karena tidak semua data yang ada di dalam collection memiliki field ini
+     superadmin?: boolean;
+     original_name?: string;
+   };
+
+   // constant value
+   const DATABASE_NAME = process.env.MONGODB_DATABASE_NAME || "test";
+   const COLLECTION_USER = "Users";
+
+   // Model CRUD
+   export const getDb = async () => {
+     const client = await getMongoClientInstance();
+     const db: Db = client.db(DATABASE_NAME);
+
+     return db;
+   };
+
+   export const getUsers = async () => {
+     const db = await getDb();
+
+     // Di sini kita akan mendefinisikan type dari users
+     // Karena kembalian dari toArray() adalah array `WithId<Document>[]`
+     // kita akan type casting menjadi UserModel[] dengan menggunakan "as"
+     const users = (await db
+       .collection(COLLECTION_USER)
+       .find({})
+       .toArray()) as UserModel[];
+
+     return users;
+   };
+
+   export const createUser = async (user: UserModel) => {
+     const modifiedUser: UserModel = {
+       ...user,
+       password: hashText(user.password),
+     };
+
+     const db = await getDb();
+     const result = await db
+       .collection(COLLECTION_USER)
+       .insertOne(modifiedUser);
+
+     return result;
+   };
+   ```
+
 ## References

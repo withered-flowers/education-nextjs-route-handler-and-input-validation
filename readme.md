@@ -135,7 +135,7 @@ Adapun langkah-langkahnya adalah sebagai berikut:
    import { hashText } from "../utils/hash";
 
    // Mendefinisikan type dari UserModel
-   type UserModel = {
+   export type UserModel = {
      _id: ObjectId;
      username: string;
      email: string;
@@ -147,7 +147,7 @@ Adapun langkah-langkahnya adalah sebagai berikut:
    };
 
    // constant value
-   const DATABASE_NAME = process.env.MONGODB_DATABASE_NAME || "test";
+   const DATABASE_NAME = process.env.MONGODB_DB_NAME || "test";
    const COLLECTION_USER = "Users";
 
    // Model CRUD
@@ -354,6 +354,70 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
    Apakah sesuai dengan json yang dibuat?
 
 ### Step 3 - Mengimplementasikan `GET /api/users`
+
+Pada langkah ini kita akan mencoba untuk mengimplementasikan endpoint `GET /api/users` dengan benar.
+
+Endpoint ini akan mengembalikan data user yang ada di dalam collection `Users` yang ada di dalam database `pengembangan` dalam MongoDB Atlas yang sudah kita buat sebelumnya.
+
+Adapun langkah-langkah pembuatannya adalah sebagai berikut:
+
+1. Membuka kembali file `route.ts` dalam folder `users` (`/src/app/api/users/route.ts`)
+1. Modifikasi file menjadi seperti berikut:
+
+   ```ts
+   import { NextResponse } from "next/server";
+
+   // ?? Step 3 - Mengimplementasikan `GET /api/users` (1)
+   // Import fungsi dan type yang diperlukan dari `db/models/user.ts`
+   import { getUsers } from "@/db/models/user";
+
+   type MyResponse<T> = {
+     statusCode: number;
+     message?: string;
+     data?: T;
+     error?: string;
+   };
+
+   // GET /api/users
+   export const GET = async () => {
+     // ?? Step 3 - Mengimplementasikan `GET /api/users` (2)
+     // Di sini kita akan menggunakan fungsi getUsers() yang sudah kita buat sebelumnya
+     const users = await getUsers();
+
+     return Response.json(
+       {
+         statusCode: 200,
+         message: "Pong from GET /api/users !",
+         // ?? Step 3 - Mengimplementasikan `GET /api/users` (3)
+         // Di sini kita akan mengirimkan data users
+         data: users,
+       },
+
+       {
+         status: 200,
+       }
+     );
+   };
+
+   // POST /api/users
+   export const POST = async () => {
+     return NextResponse.json<MyResponse<never>>(
+       {
+         statusCode: 201,
+         message: "Pong from POST /api/users !",
+       },
+       {
+         status: 201,
+       }
+     );
+   };
+   ```
+
+1. Membuka HTTP Rest Client dan menembak ke endpoint `GET http://localhost:3000/api/users/` dan lihatlah hasilnya.
+
+   Apakah sekarang sudah mendapatkan data kembalian dari Atlas?
+
+### Step 4 - Mengimplementasikan `POST /api/users`
 
 ## References
 

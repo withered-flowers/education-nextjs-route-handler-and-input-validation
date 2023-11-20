@@ -2,6 +2,10 @@
 // Untuk penjelasannya ada di bawah yah !
 import { NextResponse } from "next/server";
 
+// ?? Step 3 - Mengimplementasikan `GET /api/users` (1)
+// Import fungsi dan type yang diperlukan dari `db/models/user.ts`
+import { getUsers } from "@/db/models/user";
+
 // Type definitions untuk Response yang akan dikembalikan
 type MyResponse<T> = {
   statusCode: number;
@@ -12,6 +16,10 @@ type MyResponse<T> = {
 
 // GET /api/users
 export const GET = async () => {
+  // ?? Step 3 - Mengimplementasikan `GET /api/users` (2)
+  // Di sini kita akan menggunakan fungsi getUsers() yang sudah kita buat sebelumnya
+  const users = await getUsers();
+
   // Di sini yang akan dikembalikan adalah Response dari Web API
   // (Standard Web API: Request untuk mendapatkan data dan Request untuk mengirimkan data)
   // https://developer.mozilla.org/en-US/docs/Web/API/Request
@@ -21,6 +29,9 @@ export const GET = async () => {
     {
       statusCode: 200,
       message: "Pong from GET /api/users !",
+      // ?? Step 3 - Mengimplementasikan `GET /api/users` (3)
+      // Di sini kita akan mengirimkan data users
+      data: users,
     },
     // Object informasi tambahan (status code, headers, dll)
     {

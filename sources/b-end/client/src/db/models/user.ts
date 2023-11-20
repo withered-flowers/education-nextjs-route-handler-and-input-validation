@@ -3,7 +3,7 @@ import { getMongoClientInstance } from "../config";
 import { hashText } from "../utils/hash";
 
 // Mendefinisikan type dari UserModel
-type UserModel = {
+export type UserModel = {
   _id: ObjectId;
   username: string;
   email: string;
@@ -15,7 +15,7 @@ type UserModel = {
 };
 
 // constant value
-const DATABASE_NAME = process.env.MONGODB_DATABASE_NAME || "test";
+const DATABASE_NAME = process.env.MONGODB_DB_NAME || "test";
 const COLLECTION_USER = "Users";
 
 // Model CRUD
@@ -34,7 +34,7 @@ export const getUsers = async () => {
   // kita akan type casting menjadi UserModel[] dengan menggunakan "as"
   const users = (await db
     .collection(COLLECTION_USER)
-    .find({})
+    .find()
     // Exclude kolom password
     // (For the sake of security...)
     .project({ password: 0 })

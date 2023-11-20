@@ -1,0 +1,9 @@
+@BASE_URL=http://localhost:3000/api
+
+###
+
+GET {{BASE_URL}}/users HTTP/1.1
+
+###
+
+POST {{BASE_URL}}/users HTTP/1.1

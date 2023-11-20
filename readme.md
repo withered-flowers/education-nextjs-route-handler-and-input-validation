@@ -6,6 +6,8 @@
 - [Scope Pembelajaran](#scope-pembelajaran)
 - [Demo](#demo)
   - [Step 0a - Membuat Collection pada Atlas](#step-0a---membuat-collection-pada-atlas)
+  - [Step 0b - Membuat Konfigurasi Driver MongoDB](#step-0b---membuat-konfigurasi-driver-mongodb)
+  - [Step 1 - Membuat Kerangka Route Handler `/api/users`](#step-1---membuat-kerangka-route-handler-apiusers)
 - [References](#references)
 
 ## Disclaimer
@@ -26,7 +28,9 @@
 
 ## Demo
 
-Sampai pada titik ini kita sudah menggunakan NextJS pada sisi "FrontEnd" untuk melakukan fetching data dan memutasikan data. Pada pembelajaran kali ini kita akan menggunakan NextJS pada sisi "BackEnd" untuk membuat API sederhana sampai dengan membuat Authentication dengan NextJS yah.
+Sampai pada titik ini kita sudah menggunakan NextJS pada sisi "FrontEnd" untuk melakukan fetching data dan memutasikan data.
+
+Pada pembelajaran kali ini kita akan menggunakan NextJS pada sisi "BackEnd" untuk membuat API sederhana sampai dengan membuat `Authentication` dengan NextJS yah.
 
 ### Step 0a - Membuat Collection pada Atlas
 
@@ -161,12 +165,18 @@ Adapun langkah-langkahnya adalah sebagai berikut:
      const users = (await db
        .collection(COLLECTION_USER)
        .find({})
+       // Exclude kolom password
+       // (For the sake of security...)
+       .project({ password: 0 })
        .toArray()) as UserModel[];
 
      return users;
    };
 
    export const createUser = async (user: UserModel) => {
+     // Kita akan memodifikasi user yang baru
+     // karena butuh untuk meng-hash password
+     // (For the sake of security...)
      const modifiedUser: UserModel = {
        ...user,
        password: hashText(user.password),
@@ -179,6 +189,131 @@ Adapun langkah-langkahnya adalah sebagai berikut:
 
      return result;
    };
+
+   export const findUserByEmail = async (email: string) => {
+     const db = await getDb();
+
+     const user = (await db
+       .collection(COLLECTION_USER)
+       .findOne({ email: email })) as UserModel;
+
+     return user;
+   };
    ```
 
+Sampai pada tahap ini artinya kita sudah siap untuk membuat sisi "BackEnd" dari NextJS yang cukup sederhana yah !
+
+### Step 1 - Membuat Kerangka Route Handler `/api/users`
+
+Pada langkah ini kita akan mencoba untuk membuat kerangka untuk route `/api/users`, yaitu:
+
+- `GET /api/users` untuk mendapatkan semua data user
+- `POST /api/users` untuk membuat user baru
+
+Untuk bisa membuat `endpoint` seperti ini, kita akan menggunakan `Route Handlers` yang sudah disediakan oleh NextJS.
+
+`Route Handlers` didefinisikan di dalam NextJS dalam file bernama `route.js` atau `route.ts` yang berada di dalam folder `app`, dan di dalam file tersebut kita bisa mendefinisikan `endpoint` yang akan kita buat via fungsi dengan nama HTTP method yang diinginkan dalam `CAPSLOCK` a.k.a `GET`, `POST`, `PUT`, `DELETE`, dan lain-lain.
+
+```ts
+// GET /api/nama_resource/route.ts
+export const GET = () => {
+  // Do some magic here
+};
+
+// POST /api/nama_resource/route.ts
+export const POST = () => {
+  // Do some magic here
+};
+```
+
+> Bagi yang menggunakan `pages` untuk membuat `endpoint`, maka pembelajaran ini bukan yang paling tepat untuk Anda yah...
+
+Adapun langkah-langkah pembuatannya adalah sebagai berikut:
+
+1. Membuat sebuah folder baru pada folder `app` dengan nama `api` (`src/app/api`)
+1. Membuat sebuah folder baru di dalam `api` dengan nama `users` (`src/app/api/users`)
+1. Membuat sebuah file baru dengan nama `route.ts` (`src/app/api/users/route.ts`) dan memasukkan kode sebagai berikut:
+
+   ```ts
+   // Di sini kita akan mengimport NextResponse
+   // Untuk penjelasannya ada di bawah yah !
+   import { NextResponse } from "next/server";
+
+   // Type definitions untuk Response yang akan dikembalikan
+   type MyResponse<T> = {
+     statusCode: number;
+     message?: string;
+     data?: T;
+     error?: string;
+   };
+
+   // GET /api/users
+   export const GET = async () => {
+     // Di sini yang akan dikembalikan adalah Response dari Web API
+     // (Standard Web API: Request untuk mendapatkan data dan Request untuk mengirimkan data)
+     // https://developer.mozilla.org/en-US/docs/Web/API/Request
+     // https://developer.mozilla.org/en-US/docs/Web/API/Response
+     return Response.json(
+       // Data yang akan dikirimkan ke client
+       {
+         statusCode: 200,
+         message: "Pong from GET /api/users !",
+       },
+       // Object informasi tambahan (status code, headers, dll)
+       {
+         // Default status adalah 200
+         status: 200,
+       }
+     );
+   };
+
+   // POST /api/users
+   export const POST = async () => {
+     // Di sini kita akan menggunakan NextResponse yang merupakan extend dari Response
+     // Keuntungan dengan menggunakan NextResponse adalah kita bisa menuliskan kembalian dari Response dengan lebih presisi dengan Generic Type dan memiliki beberapa method yang tidak ada di Response.
+     // https://nextjs.org/docs/pages/api-reference/functions/next-server#nextresponse
+     // Misalnya di sini kita menuliskan bahwa Response yang akan dikembalikan adalah MyResponse yang mana memiliki Generic Type never (tidak ada data yang dikembalikan) untuk key "data"
+
+     /*
+        {
+          statusCode: number; <--- harus selalu ada statusCode
+          message?: string; <--- bisa ada "message" bisa tidak
+          data?: never; <--- menjadi tidak ada "data" yang dikembalikan
+          error?: string; <--- bisa ada "error" bisa tidak
+        }
+      */
+     return NextResponse.json<MyResponse<never>>(
+       // Data yang akan dikirimkan ke client
+       {
+         statusCode: 201,
+         message: "Pong from POST /api/users !",
+       },
+       // Object informasi tambahan (status code, headers, dll)
+       {
+         // Karena di sini menggunakan non-default status (bukan 200)
+         // maka di sini kita menuliskan status: 201
+         status: 201,
+       }
+     );
+   };
+   ```
+
+1. Menjalankan aplikasi dengan perintah `npm run dev`
+1. Membuka HTTP REST Client yang bisa digunakan seperti [Postman](https://www.postman.com/) atau [Insomnia](https://insomnia.rest/) atau [VSCode REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) dan cobalah untuk menembak pada endpoint berikut:
+
+   - `GET http://localhost:3000/api/users`
+   - `POST http://localhost:3000/api/users`
+
+   Dan lihatlah hasilnya, apakah sesuai dengan json yang dibuat?
+
+### Step 2 - Membuat Kerangka Route Handler `/api/users/:id`
+
+Pada langkah ini kita akan mencoba untuk membuat kerangka untuk route `/api/users/:id`, yaitu:
+
+- `GET /api/users/:id` untuk mendapatkan data user berdasarkan id
+
 ## References
+
+- https://nextjs.org/docs/app/building-your-application/routing/route-handlers
+- https://nextjs.org/docs/pages/api-reference/functions/next-server#nextrequest
+- https://nextjs.org/docs/pages/api-reference/functions/next-server#nextresponse

@@ -35,12 +35,18 @@ export const getUsers = async () => {
   const users = (await db
     .collection(COLLECTION_USER)
     .find({})
+    // Exclude kolom password
+    // (For the sake of security...)
+    .project({ password: 0 })
     .toArray()) as UserModel[];
 
   return users;
 };
 
 export const createUser = async (user: UserModel) => {
+  // Kita akan memodifikasi user yang baru
+  // karena butuh untuk meng-hash password
+  // (For the sake of security...)
   const modifiedUser: UserModel = {
     ...user,
     password: hashText(user.password),
@@ -50,4 +56,14 @@ export const createUser = async (user: UserModel) => {
   const result = await db.collection(COLLECTION_USER).insertOne(modifiedUser);
 
   return result;
+};
+
+export const findUserByEmail = async (email: string) => {
+  const db = await getDb();
+
+  const user = (await db
+    .collection(COLLECTION_USER)
+    .findOne({ email: email })) as UserModel;
+
+  return user;
 };

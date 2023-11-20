@@ -8,6 +8,8 @@
   - [Step 0a - Membuat Collection pada Atlas](#step-0a---membuat-collection-pada-atlas)
   - [Step 0b - Membuat Konfigurasi Driver MongoDB](#step-0b---membuat-konfigurasi-driver-mongodb)
   - [Step 1 - Membuat Kerangka Route Handler `/api/users`](#step-1---membuat-kerangka-route-handler-apiusers)
+  - [Step 2 - Membuat Kerangka Route Handler `/api/users/:id`](#step-2---membuat-kerangka-route-handler-apiusersid)
+  - [Step 3 - Mengimplementasikan `GET /api/users`](#step-3---mengimplementasikan-get-apiusers)
 - [References](#references)
 
 ## Disclaimer
@@ -90,7 +92,7 @@ Adapun langkah-langkahnya adalah sebagai berikut:
 1. Membuka [halaman utama Atlas](https://cloud.mongodb.com/)
 1. Menekan tombol `Connect` kemudian memilih `Drivers`
 1. Pada langkah `3. Add your connection string into your application code`, akan diberikan sebuah string yang diawali dengan `mongo+srv`, tekan tombol copy
-1. Kembali pada halaman project pada VSCode, membuat sebuah file baru dengan nama `.env` pada root folder
+1. Kembali pada halaman project pada VSCode, membuat sebuah file baru dengan nama `.env` pada root folder (`sources/a-start/client/.env`)
 1. Membuat sebuah key baru dengan nama `MONGODB_CONNECTION_STRING="<isikan_dengan_string_yang_dicopy_tadi>"` (**perhatikan bahwa ada double quote pada string tersebut**)
 1. Membuat sebuah key baru dengan nama `MONGODB_DB_NAME=pengembangan`
 1. Menginstall package `mongodb` dengan perintah `npm install mongodb`
@@ -311,6 +313,47 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
 Pada langkah ini kita akan mencoba untuk membuat kerangka untuk route `/api/users/:id`, yaitu:
 
 - `GET /api/users/:id` untuk mendapatkan data user berdasarkan id
+
+Adapun langkah-langkah pembuatannya adalah sebagai berikut:
+
+1. Membuat sebuah folder baru pada folder `users` dengan nama `[id]` (`src/app/api/users/[id]`)
+1. Membuat sebuah file baru dengan nama `route.ts` (`src/app/api/users/[id]/route.ts`) dan menuliskan kode sebagai berikut:
+
+   ```ts
+   // di sini kita akan menggunakan NextRequest dan NextResponse yang merupakan extend dari Request dan Response
+   import { NextRequest, NextResponse } from "next/server";
+
+   // Type definitions untuk Response yang akan dikembalikan
+   type MyResponse<T> = {
+     statusCode: number;
+     message?: string;
+     data?: T;
+     error?: string;
+   };
+
+   // Karena di sini kita akan menerima parameter "id" dari URL
+   // Maka di sini kita akan menggunakan parameter kedua dari route handler
+   // yaitu berupa suatu Object params
+   export const GET = (
+     // Di sini kita menggunakan _request karena kita tidak akan menggunakan argument ini sekarang
+     _request: NextRequest,
+     // Perhatikan di sini params dalam bentuk sebuah Object
+     { params }: { params: { id: string } }
+   ) => {
+     const id = params.id;
+
+     return NextResponse.json<MyResponse<unknown>>({
+       statusCode: 200,
+       message: `Pong from GET /api/users/${id} !`,
+     });
+   };
+   ```
+
+1. Membuka HTTP Rest Client dan menembak ke endpoint `GET http://localhost:3000/api/users/123` dan lihatlah hasilnya
+
+   Apakah sesuai dengan json yang dibuat?
+
+### Step 3 - Mengimplementasikan `GET /api/users`
 
 ## References
 

@@ -78,3 +78,12 @@ export const getUserById = async (id: string) => {
 
   return user;
 };
+
+export const getUserByEmail = async (email: string) => {
+  const db = await getDb();
+  const user = (await db
+    .collection(COLLECTION_USER)
+    .findOne({ email: email })) as UserModel;
+
+  return user;
+};

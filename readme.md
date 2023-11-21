@@ -195,12 +195,20 @@ Adapun langkah-langkahnya adalah sebagai berikut:
      return result;
    };
 
-   export const findUserByEmail = async (email: string) => {
+   export const getUserById = async (id: string) => {
      const db = await getDb();
+     const objectId = new ObjectId(id);
 
-     const user = (await db
-       .collection(COLLECTION_USER)
-       .findOne({ email: email })) as UserModel;
+     const user = (await db.collection(COLLECTION_USER).findOne(
+       { _id: objectId },
+       {
+         projection: {
+           // Exclude kolom password
+           // (For the sake of security...)
+           password: 0,
+         },
+       }
+     )) as UserModel;
 
      return user;
    };
@@ -709,6 +717,44 @@ Pada langkah ini kita akan mencoba untuk mengimplementasikan endpoint `GET /api/
 Endpoint ini akan mengembalikan data user yang ada di dalam collection `Users` yang ada di dalam database `pengembangan` dalam MongoDB Atlas yang sudah kita buat sebelumnya berdasarkan `id` yang diberikan oleh client.
 
 Adapun langkah-langkah pembuatannya adalah sebagai berikut:
+
+1. Membuka kembali file `route.ts` pada folder `users` (`/src/app/api/users/[id]/route.ts`)
+1. Memodifikasi kode menjadi sebagai berikut:
+
+   ```ts
+   import { NextRequest, NextResponse } from "next/server";
+
+   // ?? Step 6 - Mengimplementasikan `GET /api/users/:id` (1)
+   // import fungsi dari model user.ts
+   import { getUserById } from "@/db/models/user";
+
+   type MyResponse<T> = {
+     statusCode: number;
+     message?: string;
+     data?: T;
+     error?: string;
+   };
+
+   export const GET =
+     // ?? Step 6 - Mengimplementasikan `GET /api/users/:id` (2)
+     // Menjadikan fungsi ini async
+     async (_request: NextRequest, { params }: { params: { id: string } }) => {
+       const id = params.id;
+
+       // ?? Step 6 - Mengimplementasikan `GET /api/users/:id` (3)
+       // Kita akan mengambil data user dari database
+       // dengan menggunakan fungsi getUserById
+       const user = await getUserById(id);
+
+       return NextResponse.json<MyResponse<unknown>>({
+         statusCode: 200,
+         message: `Pong from GET /api/users/${id} !`,
+         // ?? Step 6 - Mengimplementasikan `GET /api/users/:id` (4)
+         // Mengembalikan data user yang sudah diambil dari database
+         data: user,
+       });
+     };
+   ```
 
 ## References
 

@@ -61,12 +61,20 @@ export const createUser = async (user: UserModelCreateInput) => {
   return result;
 };
 
-export const findUserByEmail = async (email: string) => {
+export const getUserById = async (id: string) => {
   const db = await getDb();
+  const objectId = new ObjectId(id);
 
-  const user = (await db
-    .collection(COLLECTION_USER)
-    .findOne({ email: email })) as UserModel;
+  const user = (await db.collection(COLLECTION_USER).findOne(
+    { _id: objectId },
+    {
+      projection: {
+        // Exclude kolom password
+        // (For the sake of security...)
+        password: 0,
+      },
+    },
+  )) as UserModel;
 
   return user;
 };

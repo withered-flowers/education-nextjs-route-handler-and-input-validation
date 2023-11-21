@@ -2,8 +2,8 @@
 
 ## Table of Content
 
-- [Disclaimer](#disclaimer)
 - [Scope Pembelajaran](#scope-pembelajaran)
+- [Disclaimer](#disclaimer)
 - [Demo](#demo)
   - [Step 0a - Membuat Collection pada Atlas](#step-0a---membuat-collection-pada-atlas)
   - [Step 0b - Membuat Konfigurasi Driver MongoDB](#step-0b---membuat-konfigurasi-driver-mongodb)
@@ -15,6 +15,11 @@
   - [Step 6 - Mengimplementasikan `GET /api/users/:id`](#step-6---mengimplementasikan-get-apiusersid)
 - [References](#references)
 
+## Scope Pembelajaran
+
+- Route Handler
+- Zod (Schema Validation)
+
 ## Disclaimer
 
 - Pembelajaran ini menggunakan kode dari pembelajaran sebelumnya yang sudah dimodifikasi sedikit yah. Jadi jangan kaget bila starter code-nya berbeda dengan end code pada pembelajaran sebelumnya
@@ -23,10 +28,11 @@
 
   Pastikan sudah memiliki akun terlebih dahulu di [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
 
-## Scope Pembelajaran
-
-- Route Handler
-- Zod (Schema Validation)
+- Pembelajaran ini merupakan bagian **ketiga** dari pembelajaran NextJS, Garis Besar pembelajarannya dapat dilihat di bawah ini:
+  - [Part 1 - NextJS - Intro](https://github.com/withered-flowers/education-nextjs-intro)
+  - [Part 2 - NextJS - Client Component & Server Actions](https://github.com/withered-flowers/education-nextjs-client-component-server-actions)
+  - [Part 3 - NextJS - Route Handler & Input Validation](https://github.com/withered-flowers/education-nextjs-route-handler-and-input-validation)
+  - [Part 4 - NextJS - Middleware & Authentication](https://github.com/withered-flowers/education-nextjs-middleware-and-authentication)
 
 ## Demo
 

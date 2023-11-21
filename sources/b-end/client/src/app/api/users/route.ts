@@ -3,8 +3,12 @@
 import { NextResponse } from "next/server";
 
 // ?? Step 3 - Mengimplementasikan `GET /api/users` (1)
-// Import fungsi dan type yang diperlukan dari `db/models/user.ts`
+// Import fungsi yang diperlukan dari `db/models/user.ts`
 import { getUsers } from "@/db/models/user";
+
+// ?? Step 4 - Mengimplementasikan `POST /api/users` (1)
+// Import fungsi diperlukan dari `db/models/user.ts`
+import { createUser } from "@/db/models/user";
 
 // Type definitions untuk Response yang akan dikembalikan
 type MyResponse<T> = {
@@ -42,7 +46,22 @@ export const GET = async () => {
 };
 
 // POST /api/users
-export const POST = async () => {
+// ?? Step 4 - Mengimplementasikan `POST /api/users` (2)
+// Menambahkan parameter request: Request pada POST
+export const POST = async (request: Request) => {
+  // ?? Step 4 - Mengimplementasikan `POST /api/users` (3)
+  // Di sini kita akan mengambil data yang dikirimkan oleh client
+  // Asumsi: data yang dikirimkan oleh client adalah JSON
+  const data = await request.json();
+
+  // Bila tidak ingin melakukan asumsi, maka kita bisa mengeceknya berdasarkan header "Content-Type"
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+  // const contentType = request.headers.get("Content-Type");
+  // if (contentType !== "application/json") { ... }
+
+  // Di sini kita akan menggunakan fungsi createUser() yang sudah kita buat sebelumnya
+  const user = await createUser(data);
+
   // Di sini kita akan menggunakan NextResponse yang merupakan extend dari Response
   // Keuntungan dengan menggunakan NextResponse adalah kita bisa menuliskan kembalian dari Response dengan lebih presisi dengan Generic Type dan memiliki beberapa method yang tidak ada di Response.
   // https://nextjs.org/docs/pages/api-reference/functions/next-server#nextresponse
@@ -56,11 +75,16 @@ export const POST = async () => {
       error?: string; <--- bisa ada "error" bisa tidak
     }
   */
-  return NextResponse.json<MyResponse<never>>(
+  // ?? Step 4 - Mengimplementasikan `POST /api/users` (4)
+  // Mengubah tipe kembalian menjadi unknown
+  return NextResponse.json<MyResponse<unknown>>(
     // Data yang akan dikirimkan ke client
     {
       statusCode: 201,
       message: "Pong from POST /api/users !",
+      // ?? Step 4 - Mengimplementasikan `POST /api/users` (5)
+      // Di sini kita akan mengirimkan data user
+      data: user,
     },
     // Object informasi tambahan (status code, headers, dll)
     {

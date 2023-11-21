@@ -25,6 +25,7 @@
 ## Scope Pembelajaran
 
 - Route Handler
+- Zod (Schema Validation)
 - Middleware
 - Authentication in NextJS
 
@@ -362,7 +363,7 @@ Endpoint ini akan mengembalikan data user yang ada di dalam collection `Users` y
 Adapun langkah-langkah pembuatannya adalah sebagai berikut:
 
 1. Membuka kembali file `route.ts` dalam folder `users` (`/src/app/api/users/route.ts`)
-1. Modifikasi file menjadi seperti berikut:
+1. Memodifikasi file menjadi seperti berikut:
 
    ```ts
    import { NextResponse } from "next/server";
@@ -418,6 +419,123 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
    Apakah sekarang sudah mendapatkan data kembalian dari Atlas?
 
 ### Step 4 - Mengimplementasikan `POST /api/users`
+
+Pada langkah ini kita akan mencoba untuk mengimplementasikan endpoint `POST /api/users` dengan benar.
+
+Endpoint ini akan menerima input berupa JSON yang berisi data user yang akan dibuat dan akan menyimpan data tersebut ke dalam collection `Users` yang ada di dalam database `pengembangan` dalam MongoDB Atlas yang sudah kita buat sebelumnya.
+
+Adapun langkah-langkah pembuatannya adalah sebagai berikut:
+
+1. Membuka kembali file `route.ts` dalam folder `users` (`/src/app/api/users/route.ts`)
+1. Memodifikasi file menjadi seperti berikut:
+
+   ```ts
+   import { NextResponse } from "next/server";
+
+   import { getUsers } from "@/db/models/user";
+
+   // ?? Step 4 - Mengimplementasikan `POST /api/users` (1)
+   // Import fungsi diperlukan dari `db/models/user.ts`
+   import { createUser } from "@/db/models/user";
+
+   type MyResponse<T> = {
+     statusCode: number;
+     message?: string;
+     data?: T;
+     error?: string;
+   };
+
+   // GET /api/users
+   export const GET = async () => {
+     const users = await getUsers();
+
+     return Response.json(
+       {
+         statusCode: 200,
+         message: "Pong from GET /api/users !",
+         data: users,
+       },
+
+       {
+         status: 200,
+       }
+     );
+   };
+
+   // POST /api/users
+   // ?? Step 4 - Mengimplementasikan `POST /api/users` (2)
+   // Menambahkan parameter request: Request pada POST
+   export const POST = async (request: Request) => {
+     // ?? Step 4 - Mengimplementasikan `POST /api/users` (3)
+     // Di sini kita akan mengambil data yang dikirimkan oleh client
+     // Asumsi: data yang dikirimkan oleh client adalah JSON
+     const data = await request.json();
+
+     // Bila tidak ingin melakukan asumsi, maka kita bisa mengeceknya berdasarkan header "Content-Type"
+     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+     // const contentType = request.headers.get("Content-Type");
+     // if (contentType !== "application/json") { ... }
+
+     // Di sini kita akan menggunakan fungsi createUser() yang sudah kita buat sebelumnya
+     const user = await createUser(data);
+
+     // ?? Step 4 - Mengimplementasikan `POST /api/users` (4)
+     // Mengubah tipe kembalian menjadi unknown
+     return NextResponse.json<MyResponse<unknown>>(
+       // Data yang akan dikirimkan ke client
+       {
+         statusCode: 201,
+         message: "Pong from POST /api/users !",
+         // ?? Step 4 - Mengimplementasikan `POST /api/users` (5)
+         // Di sini kita akan mengirimkan data user
+         data: user,
+       },
+       {
+         status: 201,
+       }
+     );
+   };
+   ```
+
+1. Membuka HTTP Rest Client dan menembak ke endpoint `POST http://localhost:3000/api/users/` dengan body berupa JSON sebagai berikut:
+
+   ```json
+   {
+     "email": "john@doe.com",
+     "password": "123456"
+   }
+   ```
+
+1. Lihatlah hasilnya, apakah akan memberikan data berupa `acknowledged: true` dan `insertedId: "xxxxx"` ? dan cek juga Apakah data tersebut sudah masuk ke dalam Atlas?
+
+   Ya sampai pada tahap ini kita sudah berhasil untuk mengimplementasikan POST untuk membuat user baru yah !
+
+   Tapi sampai di sini ada masalah:
+
+   - `Mengapa email dan password saja tetap bisa masuk yah?`
+   - `Padahal kan model kita mengharuskan menerima email, username, dan password?`
+   - `Kok jadi beda begini, nanti bisa bahaya donk?`
+
+   Karena sampai pada tahap ini, kita belum melakukan validasi terhadap input yang diberikan oleh client !
+
+   Sayangnya untuk mem-validasi input-an yang diberikan oleh client, NextJS tidak menyediakan built-in function untuk melakukan validasi, sehingga kita harus menggunakan package lain untuk melakukan validasi.
+
+   Untuk itu kita akan menggunakan `zod` sebagai package untuk melakukan validasi input-an dari client.
+
+### Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input
+
+Pada langkah ini kita akan mencoba untuk menggunakan package bernama `zod` untuk melakukan validasi terhadap suatu schema / input-an yang kita terima dari client.
+
+`zod`, dikutip dari situs resminya, adalah:
+
+> TypeScript-first schema validation with static type inference
+
+TL;DR: `zod` adalah suatu validasi schema yang memang typescript friendly.
+
+Adapun langkah-langkah pembuatannya adalah sebagai berikut:
+
+1. Menginstall package `zod` dengan perintah `npm install zod`
+1. Membuka file `route.ts` pada folder `users` (`/src/app/api/users/route.ts`)
 
 ## References
 

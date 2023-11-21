@@ -756,6 +756,15 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
      };
    ```
 
+1. Membuka HTTP Rest Client dan menembak ke endpoint `GET http://localhost:3000/api/users` dan lihat hasilnya, pilih salah satu dari \_id yang muncul dan copy
+1. Menembak ke endpoint `GET http://localhost:3000/api/users/<_id_yang_dicopy>` dan lihatlah hasilnya.
+
+   Apakah sekarang sudah mendapatkan data kembalian dari Atlas?
+
+Sampai pada tahap ini, artinya kita sudah berhasil membuat "BackEnd" pada NextJS dengan menggunakan `Route Handler` yah !
+
+Pada pertemuan selanjutnya kita akan mempelajari tentang `Authentication` dengan menggunakan NextJS yah, **_stay tuned !_**
+
 ## References
 
 - https://nextjs.org/docs/app/building-your-application/routing/route-handlers

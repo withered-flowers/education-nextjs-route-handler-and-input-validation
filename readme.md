@@ -1,4 +1,4 @@
-# Education NextJS - Route Handler & Authentication
+# Education NextJS - Route Handler & Input Validation
 
 ## Table of Content
 
@@ -12,30 +12,27 @@
   - [Step 3 - Mengimplementasikan `GET /api/users`](#step-3---mengimplementasikan-get-apiusers)
   - [Step 4 - Mengimplementasikan `POST /api/users`](#step-4---mengimplementasikan-post-apiusers)
   - [Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input](#step-5---mengimplementasikan-zod-sebagai-validasi-input)
+  - [Step 6 - Mengimplementasikan `GET /api/users/:id`](#step-6---mengimplementasikan-get-apiusersid)
 - [References](#references)
 
 ## Disclaimer
 
-- Pada pembelajaran ini kita akan menggunakan `MongoDB` sebagai database untuk melakukan authentication. Untuk itu, kita akan menggunakan `MongoDB Atlas` sebagai layanan database yang akan kita gunakan.
+- Pembelajaran ini menggunakan kode dari pembelajaran sebelumnya yang sudah dimodifikasi sedikit yah. Jadi jangan kaget bila starter code-nya berbeda dengan end code pada pembelajaran sebelumnya
+- Pembelajaran ini belum sampai tahap melakukan `Authentication`, hanya baru sampai membuat kerangkanya saja.
+- Pada pembelajaran ini kita akan menggunakan `MongoDB` sebagai databasenya. Untuk itu, kita akan menggunakan `MongoDB Atlas` sebagai layanan database yang akan kita gunakan.
 
   Pastikan sudah memiliki akun terlebih dahulu di [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
-
-- Pembelajaran ini menggunakan kode dari pembelajaran sebelumnya yang sudah dimodifikasi sedikit yah. Jadi jangan kaget bila starter code-nya berbeda dengan end code pada pembelajaran sebelumnya
-
-- Pembelajaran ini menggunakan package `jsonwebtoken` sebagai pembuat JWT yang akan disimpan pada cookies, namun, apabila menggunakan `Vercel`, sebenarnya lebih disarankan untuk menggunakan package `jose` yah !
 
 ## Scope Pembelajaran
 
 - Route Handler
 - Zod (Schema Validation)
-- Middleware
-- Authentication in NextJS
 
 ## Demo
 
 Sampai pada titik ini kita sudah menggunakan NextJS pada sisi "FrontEnd" untuk melakukan fetching data dan memutasikan data.
 
-Pada pembelajaran kali ini kita akan menggunakan NextJS pada sisi "BackEnd" untuk membuat API sederhana sampai dengan membuat `Authentication` dengan NextJS yah.
+Pada pembelajaran kali ini kita akan menggunakan NextJS pada sisi "BackEnd" untuk membuat API sederhana sampai dengan membuat kerangka untuk melakukan `Authentication` nantinya dengan NextJS yah.
 
 ### Step 0a - Membuat Collection pada Atlas
 
@@ -698,6 +695,20 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
    ```
 
    Dan coba lihat hasilnya, apakah sudah "dimarahi" oleh `zod`?
+
+Pada tahapan ini kita sudah berhasil menggunakan `zod` sebagai validasi input yang diterima oleh client yah.
+
+Sebenarnya implementasi dari `zod` ini tidak hanya sekedar untuk validasi saja, tapi sampai dengan mendapatkan tipe data dari inputan tersebut (yang sebelumnya `any`, bisa menjadi tipe data sesuai schema yang dibuat.).
+
+Hal ini sangat bagus karena kita bisa memiliki tipe data yang dibutuhkan dalam aplikasi.
+
+### Step 6 - Mengimplementasikan `GET /api/users/:id`
+
+Pada langkah ini kita akan mencoba untuk mengimplementasikan endpoint `GET /api/users/:id` dengan benar.
+
+Endpoint ini akan mengembalikan data user yang ada di dalam collection `Users` yang ada di dalam database `pengembangan` dalam MongoDB Atlas yang sudah kita buat sebelumnya berdasarkan `id` yang diberikan oleh client.
+
+Adapun langkah-langkah pembuatannya adalah sebagai berikut:
 
 ## References
 

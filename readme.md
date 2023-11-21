@@ -10,6 +10,8 @@
   - [Step 1 - Membuat Kerangka Route Handler `/api/users`](#step-1---membuat-kerangka-route-handler-apiusers)
   - [Step 2 - Membuat Kerangka Route Handler `/api/users/:id`](#step-2---membuat-kerangka-route-handler-apiusersid)
   - [Step 3 - Mengimplementasikan `GET /api/users`](#step-3---mengimplementasikan-get-apiusers)
+  - [Step 4 - Mengimplementasikan `POST /api/users`](#step-4---mengimplementasikan-post-apiusers)
+  - [Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input](#step-5---mengimplementasikan-zod-sebagai-validasi-input)
 - [References](#references)
 
 ## Disclaimer
@@ -147,6 +149,9 @@ Adapun langkah-langkahnya adalah sebagai berikut:
      original_name?: string;
    };
 
+   // Mendefinisikan type dari UserModelCreateInput yang tidak menggunakan _id
+   export type UserModelCreateInput = Omit<UserModel, "_id">;
+
    // constant value
    const DATABASE_NAME = process.env.MONGODB_DB_NAME || "test";
    const COLLECTION_USER = "Users";
@@ -176,11 +181,11 @@ Adapun langkah-langkahnya adalah sebagai berikut:
      return users;
    };
 
-   export const createUser = async (user: UserModel) => {
+   export const createUser = async (user: UserModelCreateInput) => {
      // Kita akan memodifikasi user yang baru
      // karena butuh untuk meng-hash password
      // (For the sake of security...)
-     const modifiedUser: UserModel = {
+     const modifiedUser: UserModelCreateInput = {
        ...user,
        password: hashText(user.password),
      };
@@ -469,6 +474,7 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
      // ?? Step 4 - Mengimplementasikan `POST /api/users` (3)
      // Di sini kita akan mengambil data yang dikirimkan oleh client
      // Asumsi: data yang dikirimkan oleh client adalah JSON
+     // Perhatikan bahwa tipe data ini akan selalu menjadi "any"
      const data = await request.json();
 
      // Bila tidak ingin melakukan asumsi, maka kita bisa mengeceknya berdasarkan header "Content-Type"
@@ -535,7 +541,163 @@ TL;DR: `zod` adalah suatu validasi schema yang memang typescript friendly.
 Adapun langkah-langkah pembuatannya adalah sebagai berikut:
 
 1. Menginstall package `zod` dengan perintah `npm install zod`
-1. Membuka file `route.ts` pada folder `users` (`/src/app/api/users/route.ts`)
+1. Membuka file `route.ts` pada folder `users` (`/src/app/api/users/route.ts`) dan memodifikasi filenya menjadi sebagai berikut:
+
+   ```ts
+   import { NextResponse } from "next/server";
+
+   import { getUsers } from "@/db/models/user";
+
+   import { createUser } from "@/db/models/user";
+
+   // ?? Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input (1)
+   // Mengimport z dari package zod untuk validasi
+   import { z } from "zod";
+
+   type MyResponse<T> = {
+     statusCode: number;
+     message?: string;
+     data?: T;
+     error?: string;
+   };
+
+   // ?? Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input (2)
+   // Membuat schema untuk validasi input dari client
+   /*
+     Harapan dari input client adalah:
+   
+     {
+       "username": string, required;
+       "email": string, required, email;
+       "password": string, required, min 6 karakter;
+       "super_admin": boolean, optional;
+       "original_name": string, optional;
+     }
+   */
+   const userInputSchema = z
+     // Awalnya adalah sebuah object
+     .object({
+       // Key "username" harus ada dan bertipe string
+       username: z.string(),
+       // Key "email" harus ada dan bertipe string dan harus berformat email
+       email: z.string().email(),
+       // Key "password" harus ada dan bertipe string dan minimal 6 karakter
+       password: z.string().min(6),
+       // Key "super_admin" adalah optional dan bertipe boolean
+       super_admin: z.boolean().optional(),
+       // Key "original_name" adalah optional dan bertipe string
+       original_name: z.string().optional(),
+     });
+
+   // GET /api/users
+   export const GET = async () => {
+     const users = await getUsers();
+
+     return Response.json(
+       {
+         statusCode: 200,
+         message: "Pong from GET /api/users !",
+         data: users,
+       },
+       {
+         status: 200,
+       }
+     );
+   };
+
+   // POST /api/users
+   export const POST = async (request: Request) => {
+     // ?? Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input (3)
+     // Membungkus logic dalam try-catch
+     try {
+       const data = await request.json();
+
+       // ?? Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input (4)
+       // Sebelum data akan digunakan, kita akan melakukan validasi terlebih dahulu
+       // Di sini kita akan menggunakan fungsi safeParse() dari zod
+       const parsedData = userInputSchema.safeParse(data);
+
+       // parsedData akan mengembalikan object dengan tipe data berikut:
+       /*
+         {
+           success: boolean;
+           data: unknown;
+           error: z.ZodError | null;
+         }
+       */
+
+       // Sehingga di sini kita akan melakukan pengecekan terlebih dahulu
+       if (!parsedData.success) {
+         // Kita akan throw error yang merupakan ZodError
+         throw parsedData.error;
+       }
+
+       // ?? Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input (5)
+       // Di sini kita akan mengirimkan parsedData, bukan data
+       const user = await createUser(parsedData.data);
+
+       return NextResponse.json<MyResponse<unknown>>(
+         {
+           statusCode: 201,
+           message: "Pong from POST /api/users !",
+           data: user,
+         },
+         {
+           status: 201,
+         }
+       );
+     } catch (err) {
+       // ?? Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input (6)
+       // Perhatikan tipe data dari err adalah unknown dan kita akan menangkap error dari zod yang merupakan ZodError
+       // Sehingga di sini kita harus melakukan pengecekan terlebih dahulu
+       if (err instanceof z.ZodError) {
+         console.log(err);
+
+         // Di sini kita akan mengambil path dan message dari error yang terjadi
+         // path = key dari object yang tidak sesuai dengan schema
+         // message = pesan error yang terjadi
+         const errPath = err.issues[0].path[0];
+         const errMessage = err.issues[0].message;
+
+         // Di sini kita akan mengembalikan NextResponse dengan status 400
+         // karena client mengirimkan data yang tidak sesuai dengan schema yang kita buat
+         return NextResponse.json<MyResponse<never>>(
+           // Data yang akan dikirimkan ke client
+           {
+             statusCode: 400,
+             error: `${errPath} - ${errMessage}`,
+           },
+           {
+             status: 400,
+           }
+         );
+       }
+
+       // Di sini kita akan mengembalikan NextResponse dengan status 500
+       // karena terjadi error yang tidak terduga
+       return NextResponse.json<MyResponse<never>>(
+         {
+           statusCode: 500,
+           message: "Internal Server Error !",
+         },
+         {
+           status: 500,
+         }
+       );
+     }
+   };
+   ```
+
+1. Membuka HTTP Rest Client dan menembak ke endpoint `POST http://localhost:3000/api/users/` dengan body berupa JSON sebagai berikut:
+
+   ```json
+   {
+     "email": "johndoe@mail.com",
+     "password": "123456"
+   }
+   ```
+
+   Dan coba lihat hasilnya, apakah sudah "dimarahi" oleh `zod`?
 
 ## References
 

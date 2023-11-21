@@ -14,6 +14,9 @@ export type UserModel = {
   original_name?: string;
 };
 
+// Mendefinisikan type dari UserModelCreateInput yang tidak menggunakan _id
+export type UserModelCreateInput = Omit<UserModel, "_id">;
+
 // constant value
 const DATABASE_NAME = process.env.MONGODB_DB_NAME || "test";
 const COLLECTION_USER = "Users";
@@ -43,11 +46,11 @@ export const getUsers = async () => {
   return users;
 };
 
-export const createUser = async (user: UserModel) => {
+export const createUser = async (user: UserModelCreateInput) => {
   // Kita akan memodifikasi user yang baru
   // karena butuh untuk meng-hash password
   // (For the sake of security...)
-  const modifiedUser: UserModel = {
+  const modifiedUser: UserModelCreateInput = {
     ...user,
     password: hashText(user.password),
   };

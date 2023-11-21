@@ -10,8 +10,9 @@ POST {{BASE_URL}}/users HTTP/1.1
 Content-Type: application/json
 
 {
-  "email": "john@doe.com",
-  "password": "123456"
+  "username": "johndoe",
+  "email": "johndoe@mail.com",
+  "password": "12346"
 }
 
 ###

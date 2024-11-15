@@ -2,18 +2,20 @@
 
 ## Table of Content
 
-- [Scope Pembelajaran](#scope-pembelajaran)
-- [Disclaimer](#disclaimer)
-- [Demo](#demo)
-  - [Step 0a - Membuat Collection pada Atlas](#step-0a---membuat-collection-pada-atlas)
-  - [Step 0b - Membuat Konfigurasi Driver MongoDB](#step-0b---membuat-konfigurasi-driver-mongodb)
-  - [Step 1 - Membuat Kerangka Route Handler `/api/users`](#step-1---membuat-kerangka-route-handler-apiusers)
-  - [Step 2 - Membuat Kerangka Route Handler `/api/users/:id`](#step-2---membuat-kerangka-route-handler-apiusersid)
-  - [Step 3 - Mengimplementasikan `GET /api/users`](#step-3---mengimplementasikan-get-apiusers)
-  - [Step 4 - Mengimplementasikan `POST /api/users`](#step-4---mengimplementasikan-post-apiusers)
-  - [Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input](#step-5---mengimplementasikan-zod-sebagai-validasi-input)
-  - [Step 6 - Mengimplementasikan `GET /api/users/:id`](#step-6---mengimplementasikan-get-apiusersid)
-- [References](#references)
+- [Education NextJS - Route Handler \& Input Validation](#education-nextjs---route-handler--input-validation)
+  - [Table of Content](#table-of-content)
+  - [Scope Pembelajaran](#scope-pembelajaran)
+  - [Disclaimer](#disclaimer)
+  - [Demo](#demo)
+    - [Step 0a - Membuat Collection pada Atlas](#step-0a---membuat-collection-pada-atlas)
+    - [Step 0b - Membuat Konfigurasi Driver MongoDB](#step-0b---membuat-konfigurasi-driver-mongodb)
+    - [Step 1 - Membuat Kerangka Route Handler `/api/users`](#step-1---membuat-kerangka-route-handler-apiusers)
+    - [Step 2 - Membuat Kerangka Route Handler `/api/users/:id`](#step-2---membuat-kerangka-route-handler-apiusersid)
+    - [Step 3 - Mengimplementasikan `GET /api/users`](#step-3---mengimplementasikan-get-apiusers)
+    - [Step 4 - Mengimplementasikan `POST /api/users`](#step-4---mengimplementasikan-post-apiusers)
+    - [Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input](#step-5---mengimplementasikan-zod-sebagai-validasi-input)
+    - [Step 6 - Mengimplementasikan `GET /api/users/:id`](#step-6---mengimplementasikan-get-apiusersid)
+  - [References](#references)
 
 ## Scope Pembelajaran
 
@@ -23,6 +25,10 @@
 ## Disclaimer
 
 - Pembelajaran ini menggunakan kode dari pembelajaran sebelumnya yang sudah dimodifikasi sedikit yah. Jadi jangan kaget bila starter code-nya berbeda dengan end code pada pembelajaran sebelumnya
+  - Perhatikan file berikut berikut:
+    - `@/animations/homepage-fun.json`
+    - `@/utils/hash.ts`
+    - `@/components/lottie-client/ClientLottieReact.tsx`
 - Pembelajaran ini belum sampai tahap melakukan `Authentication`, hanya baru sampai membuat kerangkanya saja.
 - Pada pembelajaran ini kita akan menggunakan `MongoDB` sebagai databasenya. Untuk itu, kita akan menggunakan `MongoDB Atlas` sebagai layanan database yang akan kita gunakan.
 
@@ -98,7 +104,7 @@ Adapun langkah-langkahnya adalah sebagai berikut:
 1. Membuka [halaman utama Atlas](https://cloud.mongodb.com/)
 1. Menekan tombol `Connect` kemudian memilih `Drivers`
 1. Pada langkah `3. Add your connection string into your application code`, akan diberikan sebuah string yang diawali dengan `mongo+srv`, tekan tombol copy
-1. Kembali pada halaman project pada VSCode, membuat sebuah file baru dengan nama `.env` pada root folder (`sources/a-start/client/.env`)
+1. Kembali pada halaman project pada VSCode, membuat sebuah file baru dengan nama `.env.local` pada root folder (`sources/a-start/client/.env.local`)
 1. Membuat sebuah key baru dengan nama `MONGODB_CONNECTION_STRING="<isikan_dengan_string_yang_dicopy_tadi>"` (**perhatikan bahwa ada double quote pada string tersebut**)
 1. Membuat sebuah key baru dengan nama `MONGODB_DB_NAME=pengembangan`
 1. Menginstall package `mongodb` dengan perintah `npm install mongodb`
@@ -106,7 +112,7 @@ Adapun langkah-langkahnya adalah sebagai berikut:
 1. Menginstall type definition `bcrypt` dengan perintah `npm install -D @types/bcryptjs`
 1. Membuat folder baru pada `src` dengan nama `db` (`/src/db`)
 1. Membuat folder baru pada `src/db` dengan nama `config` dan `models` (`/src/db/config` dan `/src/db/models`)
-1. Membuat file baru dengan nama `index.ts` pada folder `config` (`src/config/index.ts`) dan menuliskan kode sebagai berikut:
+1. Membuat file baru dengan nama `connection.ts` pada folder `config` (`src/db/config/connection.ts`) dan menuliskan kode sebagai berikut:
 
    ```ts
    import { MongoClient } from "mongodb";
@@ -136,9 +142,9 @@ Adapun langkah-langkahnya adalah sebagai berikut:
 1. Membuat sebuah file baru dengan nama `user.ts` pada folder `models` (`src/models/user.ts`) dan menuliskan kode sebagai berikut:
 
    ```ts
-   import { Db, ObjectId } from "mongodb";
-   import { getMongoClientInstance } from "../config";
-   import { hashText } from "../utils/hash";
+   import { getMongoClientInstance } from "@/db/config/connection";
+   import { hashText } from "@/utils/hash";
+   import { type Db, ObjectId } from "mongodb";
 
    // Mendefinisikan type dari UserModel
    export type UserModel = {

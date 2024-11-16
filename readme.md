@@ -274,6 +274,14 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
    import { NextResponse } from "next/server";
 
    // Type definitions untuk Response yang akan dikembalikan
+   // Asumsi dari data yang dikembalikan:
+   // (Dibuat menjadi umum agar bisa digunakan di berbagai Response)
+   /*
+      statusCode: number; <--- harus selalu ada statusCode
+      message?: string; <--- optional
+      data?: T; <--- optoinal dan berupa Generic Type
+      error?: string; <--- optional
+    */
    type MyResponse<T> = {
      statusCode: number;
      message?: string;
@@ -352,10 +360,13 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
 1. Membuat sebuah file baru dengan nama `route.ts` (`src/app/api/users/[id]/route.ts`) dan menuliskan kode sebagai berikut:
 
    ```ts
-   // di sini kita akan menggunakan NextRequest dan NextResponse yang merupakan extend dari Request dan Response
-   import { NextRequest, NextResponse } from "next/server";
+   // di sini kita akan menggunakan NextRequest dan NextResponse
+   // yang merupakan extend dari Request dan Response
+   import { type NextRequest, NextResponse } from "next/server";
 
    // Type definitions untuk Response yang akan dikembalikan
+   // sama dengan yang ada di file api/users/route.ts
+   // ? Bisa dibuat menjadi file tersendiri dan di-export !
    type MyResponse<T> = {
      statusCode: number;
      message?: string;
@@ -365,14 +376,17 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
 
    // Karena di sini kita akan menerima parameter "id" dari URL
    // Maka di sini kita akan menggunakan parameter kedua dari route handler
-   // yaitu berupa suatu Object params
-   export const GET = (
-     // Di sini kita menggunakan _request karena kita tidak akan menggunakan argument ini sekarang
+   // yaitu berupa suatu Promise<Object params>
+   export const GET = async (
+     // Di sini kita menggunakan _request karena kita tidak akan menggunakan
+     // argument ini sekarang
      _request: NextRequest,
-     // Perhatikan di sini params dalam bentuk sebuah Object
-     { params }: { params: { id: string } }
+     // Perhatikan di sini params dalam bentuk sebuah Promise<Object>
+     { params }: { params: Promise<{ id: string }> }
    ) => {
-     const id = params.id;
+     // Karena params adalah sebuah Promise,
+     // maka kita harus menunggu hasil dari Promise tersebut
+     const { id } = await params;
 
      return NextResponse.json<MyResponse<unknown>>({
        statusCode: 200,
@@ -417,6 +431,7 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
      const users = await getUsers();
 
      return Response.json(
+       // Data yang akan dikirimkan ke client
        {
          statusCode: 200,
          message: "Pong from GET /api/users !",
@@ -424,7 +439,6 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
          // Di sini kita akan mengirimkan data users
          data: users,
        },
-
        {
          status: 200,
        }
@@ -486,7 +500,6 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
          message: "Pong from GET /api/users !",
          data: users,
        },
-
        {
          status: 200,
        }
@@ -514,7 +527,6 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
      // ?? Step 4 - Mengimplementasikan `POST /api/users` (4)
      // Mengubah tipe kembalian menjadi unknown
      return NextResponse.json<MyResponse<unknown>>(
-       // Data yang akan dikirimkan ke client
        {
          statusCode: 201,
          message: "Pong from POST /api/users !",
@@ -590,29 +602,51 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
    // ?? Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input (2)
    // Membuat schema untuk validasi input dari client
    /*
-     Harapan dari input client adalah:
+      Harapan dari input client adalah:
    
-     {
-       "username": string, required;
-       "email": string, required, email;
-       "password": string, required, min 6 karakter;
-       "super_admin": boolean, optional;
-       "original_name": string, optional;
-     }
-   */
-   const userInputSchema = z
+      {
+        "username": string, required;
+        "email": string, required, email;
+        "password": string, required, min 6 karakter;
+        "super_admin": boolean, optional;
+        "original_name": string, optional;
+      }
+    */
+   const UserInputSchema = z
      // Awalnya adalah sebuah object
      .object({
        // Key "username" harus ada dan bertipe string
+       // Bila tidak ada, maka akan error
        username: z.string(),
        // Key "email" harus ada dan bertipe string dan harus berformat email
-       email: z.string().email(),
+       // Bila bukan email, kita akan berikan error message "Email tidak valid"
+       email: z.string().email({
+         message: "Email tidak valid",
+       }),
        // Key "password" harus ada dan bertipe string dan minimal 6 karakter
-       password: z.string().min(6),
+       // Bila bukan string, kita akan berikan error message "Password harus berupa string"
+       // Bila kurang dari 6 karakter, kita akan berikan error message "Password minimal 6 karakter"
+       password: z
+         .string({
+           message: "Password harus berupa string",
+         })
+         .min(6, {
+           message: "Password minimal 6 karakter",
+         }),
        // Key "super_admin" adalah optional dan bertipe boolean
-       super_admin: z.boolean().optional(),
+       // Bila bukan boolean, kita akan berikan error message "Super Admin harus berupa boolean"
+       super_admin: z
+         .boolean({
+           message: "Super Admin harus berupa boolean",
+         })
+         .optional(),
        // Key "original_name" adalah optional dan bertipe string
-       original_name: z.string().optional(),
+       // Bila bukan string, kita akan berikan error message "Original Name harus berupa string"
+       original_name: z
+         .string({
+           message: "Original Name harus berupa string",
+         })
+         .optional(),
      });
 
    // GET /api/users
@@ -641,16 +675,16 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
        // ?? Step 5 - Mengimplementasikan `zod` Sebagai Validasi Input (4)
        // Sebelum data akan digunakan, kita akan melakukan validasi terlebih dahulu
        // Di sini kita akan menggunakan fungsi safeParse() dari zod
-       const parsedData = userInputSchema.safeParse(data);
+       const parsedData = UserInputSchema.safeParse(data);
 
        // parsedData akan mengembalikan object dengan tipe data berikut:
        /*
-         {
-           success: boolean;
-           data: unknown;
-           error: z.ZodError | null;
-         }
-       */
+          {
+            success: boolean;
+            data: unknown;
+            error: z.ZodError | null;
+          }
+        */
 
        // Sehingga di sini kita akan melakukan pengecekan terlebih dahulu
        if (!parsedData.success) {
@@ -688,7 +722,6 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
          // Di sini kita akan mengembalikan NextResponse dengan status 400
          // karena client mengirimkan data yang tidak sesuai dengan schema yang kita buat
          return NextResponse.json<MyResponse<never>>(
-           // Data yang akan dikirimkan ke client
            {
              statusCode: 400,
              error: `${errPath} - ${errMessage}`,
@@ -743,12 +776,17 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
 1. Memodifikasi kode menjadi sebagai berikut:
 
    ```ts
-   import { NextRequest, NextResponse } from "next/server";
+   // di sini kita akan menggunakan NextRequest dan NextResponse
+   // yang merupakan extend dari Request dan Response
+   import { type NextRequest, NextResponse } from "next/server";
 
    // ?? Step 6 - Mengimplementasikan `GET /api/users/:id` (1)
    // import fungsi dari model user.ts
    import { getUserById } from "@/db/models/user";
 
+   // Type definitions untuk Response yang akan dikembalikan
+   // sama dengan yang ada di file api/users/route.ts
+   // ? Bisa dibuat menjadi file tersendiri dan di-export !
    type MyResponse<T> = {
      statusCode: number;
      message?: string;
@@ -756,25 +794,33 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
      error?: string;
    };
 
-   export const GET =
-     // ?? Step 6 - Mengimplementasikan `GET /api/users/:id` (2)
-     // Menjadikan fungsi ini async
-     async (_request: NextRequest, { params }: { params: { id: string } }) => {
-       const id = params.id;
+   // Karena di sini kita akan menerima parameter "id" dari URL
+   // Maka di sini kita akan menggunakan parameter kedua dari route handler
+   // yaitu berupa suatu Promise<Object params>
+   export const GET = async (
+     // Di sini kita menggunakan _request karena kita tidak akan menggunakan
+     // argument ini sekarang
+     _request: NextRequest,
+     // Perhatikan di sini params dalam bentuk sebuah Promise<Object>
+     { params }: { params: Promise<{ id: string }> }
+   ) => {
+     // Karena params adalah sebuah Promise,
+     // maka kita harus menunggu hasil dari Promise tersebut
+     const { id } = await params;
 
-       // ?? Step 6 - Mengimplementasikan `GET /api/users/:id` (3)
-       // Kita akan mengambil data user dari database
-       // dengan menggunakan fungsi getUserById
-       const user = await getUserById(id);
+     // ?? Step 6 - Mengimplementasikan `GET /api/users/:id` (3)
+     // Kita akan mengambil data user dari database
+     // dengan menggunakan fungsi getUserById
+     const user = await getUserById(id);
 
-       return NextResponse.json<MyResponse<unknown>>({
-         statusCode: 200,
-         message: `Pong from GET /api/users/${id} !`,
-         // ?? Step 6 - Mengimplementasikan `GET /api/users/:id` (4)
-         // Mengembalikan data user yang sudah diambil dari database
-         data: user,
-       });
-     };
+     return NextResponse.json<MyResponse<unknown>>({
+       statusCode: 200,
+       message: `Pong from GET /api/users/${id} !`,
+       // ?? Step 6 - Mengimplementasikan `GET /api/users/:id` (4)
+       // Mengembalikan data user yang sudah diambil dari database
+       data: user,
+     });
+   };
    ```
 
 1. Membuka HTTP Rest Client dan menembak ke endpoint `GET http://localhost:3000/api/users` dan lihat hasilnya, pilih salah satu dari \_id yang muncul dan copy
@@ -788,6 +834,6 @@ Pada pertemuan selanjutnya kita akan mempelajari tentang `Authentication` dengan
 
 ## References
 
-- https://nextjs.org/docs/app/building-your-application/routing/route-handlers
-- https://nextjs.org/docs/pages/api-reference/functions/next-server#nextrequest
-- https://nextjs.org/docs/pages/api-reference/functions/next-server#nextresponse
+- <https://nextjs.org/docs/app/building-your-application/routing/route-handlers>
+- <https://nextjs.org/docs/pages/api-reference/functions/next-server#nextrequest>
+- <https://nextjs.org/docs/pages/api-reference/functions/next-server#nextresponse>

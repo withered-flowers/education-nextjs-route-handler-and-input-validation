@@ -1,54 +1,54 @@
 {
   "jokes": [
     {
+      "id": "a875",
       "setup": "How do you generate a random string?",
-      "delivery": "Put a Windows user in front of Vim and tell them to exit.",
-      "id": 1
+      "delivery": "Put a Windows user in front of Vim and tell them to exit."
     },
     {
+      "id": "62b8",
       "setup": "Why did the Python data scientist get arrested at customs?",
-      "delivery": "She was caught trying to import pandas!",
-      "id": 2
+      "delivery": "She was caught trying to import pandas!"
     },
     {
+      "id": "5866",
       "setup": "Why did the web developer walk out of a resturant in disgust?",
-      "delivery": "The seating was laid out in tables.",
-      "id": 3
+      "delivery": "The seating was laid out in tables."
     },
     {
+      "id": "8257",
       "setup": "Why are Assembly programmers always soaking wet?",
-      "delivery": "They work below C-level.",
-      "id": 4
+      "delivery": "They work below C-level."
     },
     {
+      "id": "37d0",
       "setup": "What do you call a developer who doesn't comment code?",
-      "delivery": "A developer.",
-      "id": 5
+      "delivery": "A developer."
     },
     {
+      "id": "e184",
       "setup": "How can you tell an extroverted programmer?",
-      "delivery": "He looks at YOUR shoes when he's talking.",
-      "id": 6
+      "delivery": "He looks at YOUR shoes when he's talking."
     },
     {
+      "id": "f173",
       "setup": "Hey baby I wish your name was asynchronous...",
-      "delivery": "... so you'd give me a callback.",
-      "id": 7
+      "delivery": "... so you'd give me a callback."
     },
     {
+      "id": "b510",
       "setup": "Why are modern programming languages so materialistic?",
-      "delivery": "Because they are object-oriented.",
-      "id": 8
+      "delivery": "Because they are object-oriented."
     },
     {
+      "id": "c5e8",
       "setup": "Why did the JavaScript heap close shop?",
-      "delivery": "It ran out of memory.",
-      "id": 9
+      "delivery": "It ran out of memory."
     },
     {
+      "id": "d4a2",
       "setup": "What is the most used language in programming?",
-      "delivery": "Profanity.",
-      "id": 10
+      "delivery": "Profanity."
     }
   ]
 }

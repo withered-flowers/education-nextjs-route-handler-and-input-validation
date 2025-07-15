@@ -620,7 +620,7 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
        username: z.string(),
        // Key "email" harus ada dan bertipe string dan harus berformat email
        // Bila bukan email, kita akan berikan error message "Email tidak valid"
-       email: z.string().email({
+       email: z.email({
          message: "Email tidak valid",
        }),
        // Key "password" harus ada dan bertipe string dan minimal 6 karakter
@@ -724,7 +724,7 @@ Adapun langkah-langkah pembuatannya adalah sebagai berikut:
          return NextResponse.json<MyResponse<never>>(
            {
              statusCode: 400,
-             error: `${errPath} - ${errMessage}`,
+             error: `${String(errPath)} - ${errMessage}`,
            },
            {
              status: 400,
